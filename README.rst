@@ -16,8 +16,6 @@ results obtained by the neural network implementation
 Installation
 ============
 
-|build status|
-
 The package can be installed via conda-forge::
 
   conda install fortnet-python
