@@ -1,0 +1,9 @@
+*~
+*.bak
+*.sav
+*.pyc
+_gitmsg.saved.txt
+build
+_build
+_downloads
+__pycache__
