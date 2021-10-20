@@ -1,0 +1,29 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  ci:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.9'
+
+    - name: Install requirements (hdf5-tools)
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y hdf5-tools
+
+    - name: Install requirements (python)
+      run: pip3 install pytest numpy scipy h5py ase
+
+    - name: Setup up PYTHONPATH
+      run: echo "PYTHONPATH=${PWD}/src" >> $GITHUB_ENV
+
+    - name: Run regression tests
+      run: python3 -m pytest --basetemp=Testing

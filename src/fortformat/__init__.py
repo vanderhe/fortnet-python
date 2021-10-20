@@ -4,3 +4,8 @@
 #                                                                              #
 #  See the LICENSE file for terms of usage and distribution.                   #
 #------------------------------------------------------------------------------#
+
+
+# Pull main classes up to the fortformat top level domain namespace
+from .fnetdata import Fnetdata
+from .fnetout import Fnetout
