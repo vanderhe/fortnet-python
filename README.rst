@@ -16,16 +16,42 @@ results obtained by the neural network implementation
 Installation
 ============
 
-|build status|
+Please note, that this package has been tested for Python 3.X support. Its usage
+additionally requires
+
+  - `numerical Python <https://numpy.org/doc/stable/reference/>`_ (`numpy`)
+  - `pythonic HDF5 <http://www.h5py.org/>`_ (`h5py`)
+  - `Atomic Simulation Environment <https://wiki.fysik.dtu.dk/ase/>`_ (`ase`)
+
+as well as the `pytest` framework in order to run the regression tests.
+
+Via the Python Package Index
+----------------------------
 
 The package can be downloaded and installed via pip into the active Python
-interpreter (preferably using a virtual python environment) by::
+interpreter (preferably using a virtual python environment) by ::
 
   pip install fortnet-python
 
 or into the user space issueing::
 
   pip install --user fortnet-python
+
+Locally from Source
+-------------------
+
+Alternatively, you can install it locally from source, i.e. from the root folder
+of the project::
+
+  python -m pip install .
+
+Testing
+=======
+
+The regression testsuite utilizes the `pytest` framework and may be executed by
+::
+
+  python -m pytest --basetemp=Testing
 
 Documentation
 =============

@@ -406,3 +406,28 @@ def get_atomicweights_byatoms(atoms):
         weights.append(np.asfarray(np.random.randint(1, 100, natom, dtype=int)))
 
     return weights
+
+
+def get_batomicweights_byatoms(atoms):
+    '''Generates dummy properties for regression testing.
+
+    Args:
+
+        atoms (ASE atoms list): list of ASE Atoms objects
+
+    Returns:
+
+        weights (list): atomic gradient weighting
+
+    '''
+
+    # fix random seed for reproduction purposes
+    np.random.seed(42)
+    sample = [True, False]
+
+    weights = []
+    for atom in atoms:
+        natom = len(atom)
+        weights.append(np.random.choice(sample, size=natom))
+
+    return weights

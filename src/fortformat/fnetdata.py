@@ -75,6 +75,18 @@ class Fnetdata:
 
         self._weights = np.ones((self._nsystems,), dtype=int)
 
+        if self._withatoms:
+            self._atomicweights = []
+            for entry in self._atoms:
+                self._atomicweights.append(np.ones((len(entry),), dtype=float))
+        elif self._withfeatures:
+            self._atomicweights = []
+            for entry in self._features:
+                self._atomicweights.append(
+                    np.ones((entry.shape[0],), dtype=float))
+        else:
+            self._atomicweights = None
+
 
     def _process_data(self):
         '''Based on the stored data, a list of dictionaries,
@@ -216,6 +228,7 @@ class Fnetdata:
             subroot = datagrp.create_group('datapoint{}'.format(isys + 1))
 
             hdf_append_weight(subroot, self._weights[isys])
+            hdf_append_atomicweights(subroot, self._atomicweights[isys])
 
             if self._withatoms:
                 hdf_append_geometry(subroot, data[isys], True)
@@ -277,6 +290,55 @@ class Fnetdata:
             raise FnetdataError(msg)
 
         self._weights = weights
+
+
+    @property
+    def atomicweights(self):
+        '''Defines property, providing the gradient weight of each atom.
+
+        Returns:
+
+            atomicweights (list): float-valued list of atomic gradient weights
+
+        '''
+
+        return self._atomicweights
+
+
+    @atomicweights.setter
+    def atomicweights(self, atomicweights):
+        '''Sets user-specified gradient weighting of each atom.'''
+
+        # enable providing arrays of several dtypes
+        for ii, entry in enumerate(atomicweights):
+            atomicweights[ii] = np.array(entry, dtype=float)
+
+        if not self._withatoms:
+            msg = 'Trying to set atomic gradient weighting but the object ' + \
+                'was initialized without geometry information.'
+            raise FnetdataError(msg)
+
+        for weights in atomicweights:
+            weights = np.array(weights)
+
+        if not len(atomicweights) == len(self._atoms):
+            msg = 'Mismatch in list length of atomic gradient weighting ' + \
+                'and geometries.'
+            raise FnetdataError(msg)
+
+        # check consistency with geometries and whether (weights >= 0.0)
+        for isys, weights in enumerate(atomicweights):
+            if not len(weights) == len(self._atoms[isys]):
+                msg = 'Mismatch in number of atomic gradient weights and ' + \
+                    'number of atoms of corresponding geometry (index: {}).' \
+                .format(isys + 1)
+                raise FnetdataError(msg)
+            if any(weights < 0.0):
+                msg = 'Negative atomic gradient weight(s) obtained ' + \
+                    '(index: {}).'.format(isys + 1)
+                raise FnetdataError(msg)
+
+        self._atomicweights = atomicweights
 
 
     @property
@@ -459,6 +521,20 @@ def hdf_append_weight(root, weight):
     '''
 
     root.attrs['weight'] = weight
+
+
+def hdf_append_atomicweights(root, data):
+    '''Appends atomic gradient weights to a given in-memory hdf file.
+
+    Args:
+
+        root (hdf group): hdf group
+        data (1darray): atomic weights of current datapoint
+
+    '''
+
+    weights = root.create_dataset('atomicweights', data.shape, dtype='float')
+    weights[...] = data
 
 
 def hdf_append_geometry(root, data, frac):
