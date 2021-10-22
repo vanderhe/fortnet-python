@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='fortnet-python',
-    version='0.2',
+    version='0.3',
     description='Python Tools for the Fortnet Software Package',
     author='T. W. van der Heide',
     url='https://github.com/vanderhe/fortnet-python',
