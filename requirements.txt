@@ -1,0 +1,4 @@
+pytest
+numpy
+h5py
+ase

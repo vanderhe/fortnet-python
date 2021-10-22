@@ -18,12 +18,8 @@ Installation
 
 |build status|
 
-The package can be installed via conda-forge (available with first release)::
-
-  conda install fortnet-python
-
-Alternatively, the package can be downloaded and installed via pip into the
-active Python interpreter (preferably using a virtual python environment) by::
+The package can be downloaded and installed via pip into the active Python
+interpreter (preferably using a virtual python environment) by::
 
   pip install fortnet-python
 
