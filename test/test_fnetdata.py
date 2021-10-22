@@ -18,7 +18,8 @@ import numpy as np
 from fortformat import Fnetdata
 
 from common import Hdf5, get_cluster_geometries, get_bulk_geometries, \
-    get_mixed_geometries, get_properties_byatoms, get_atomicweights_byatoms
+    get_mixed_geometries, get_properties_byatoms, get_atomicweights_byatoms, \
+    get_batomicweights_byatoms
 
 
 REFPATH = os.path.join(os.getcwd(), 'test', 'references', 'Fnetdata')
@@ -272,6 +273,34 @@ def test_cgeometries_atomictargets_atomicweights(tmpdir):
     assert equal, 'h5diff reports mismatch in generated datasets.'
 
 
+def test_cgeometries_atomictargets_batomicweights(tmpdir):
+    '''Test dataset generation for configuration:
+
+        structures: Yes
+        periodic: No
+        targets: Yes
+        atomic targets: Yes
+        external features: No
+        manual dataset weights: No
+        manual gradient weights: Yes
+
+    '''
+
+    fname = 'cgeometries_atomictargets_batomicweights.hdf5'
+    catoms = get_cluster_geometries()
+    batomicweights = get_batomicweights_byatoms(catoms)
+    targets = get_properties_byatoms(catoms, 3, True)
+
+    fnetdata = Fnetdata(atoms=catoms, targets=targets, atomic=True)
+    fnetdata.atomicweights = batomicweights
+    fnetdata.dump(os.path.join(tmpdir, fname))
+
+    hdf5 = Hdf5(os.path.join(tmpdir, fname))
+    equal = hdf5.equals(os.path.join(REFPATH, '_' + fname))
+
+    assert equal, 'h5diff reports mismatch in generated datasets.'
+
+
 def test_cgeometries_globaltargets(tmpdir):
     '''Test dataset generation for configuration:
 
@@ -376,6 +405,34 @@ def test_cgeometries_globaltargets_atomicweights(tmpdir):
 
     fnetdata = Fnetdata(atoms=catoms, targets=targets, atomic=False)
     fnetdata.atomicweights = atomicweights
+    fnetdata.dump(os.path.join(tmpdir, fname))
+
+    hdf5 = Hdf5(os.path.join(tmpdir, fname))
+    equal = hdf5.equals(os.path.join(REFPATH, '_' + fname))
+
+    assert equal, 'h5diff reports mismatch in generated datasets.'
+
+
+def test_cgeometries_globaltargets_batomicweights(tmpdir):
+    '''Test dataset generation for configuration:
+
+        structures: Yes
+        periodic: No
+        targets: Yes
+        atomic targets: No
+        external features: No
+        manual dataset weights: No
+        manual gradient weights: Yes
+
+    '''
+
+    fname = 'cgeometries_globaltargets_batomicweights.hdf5'
+    catoms = get_cluster_geometries()
+    batomicweights = get_batomicweights_byatoms(catoms)
+    targets = get_properties_byatoms(catoms, 3, False)
+
+    fnetdata = Fnetdata(atoms=catoms, targets=targets, atomic=False)
+    fnetdata.atomicweights = batomicweights
     fnetdata.dump(os.path.join(tmpdir, fname))
 
     hdf5 = Hdf5(os.path.join(tmpdir, fname))
@@ -522,6 +579,34 @@ def test_sgeometries_atomictargets_atomicweights(tmpdir):
     assert equal, 'h5diff reports mismatch in generated datasets.'
 
 
+def test_sgeometries_atomictargets_batomicweights(tmpdir):
+    '''Test dataset generation for configuration:
+
+        structures: Yes
+        periodic: Yes
+        targets: Yes
+        atomic targets: Yes
+        external features: No
+        manual dataset weights: No
+        manual gradient weights: Yes
+
+    '''
+
+    fname = 'sgeometries_atomictargets_batomicweights.hdf5'
+    satoms = get_bulk_geometries()
+    batomicweights = get_batomicweights_byatoms(satoms)
+    targets = get_properties_byatoms(satoms, 3, True)
+
+    fnetdata = Fnetdata(atoms=satoms, targets=targets, atomic=True)
+    fnetdata.atomicweights = batomicweights
+    fnetdata.dump(os.path.join(tmpdir, fname))
+
+    hdf5 = Hdf5(os.path.join(tmpdir, fname))
+    equal = hdf5.equals(os.path.join(REFPATH, '_' + fname))
+
+    assert equal, 'h5diff reports mismatch in generated datasets.'
+
+
 def test_sgeometries_globaltargets(tmpdir):
     '''Test dataset generation for configuration:
 
@@ -626,6 +711,34 @@ def test_sgeometries_globaltargets_atomicweights(tmpdir):
 
     fnetdata = Fnetdata(atoms=satoms, targets=targets, atomic=False)
     fnetdata.atomicweights = atomicweights
+    fnetdata.dump(os.path.join(tmpdir, fname))
+
+    hdf5 = Hdf5(os.path.join(tmpdir, fname))
+    equal = hdf5.equals(os.path.join(REFPATH, '_' + fname))
+
+    assert equal, 'h5diff reports mismatch in generated datasets.'
+
+
+def test_sgeometries_globaltargets_batomicweights(tmpdir):
+    '''Test dataset generation for configuration:
+
+        structures: Yes
+        periodic: Yes
+        targets: Yes
+        atomic targets: No
+        external features: No
+        manual dataset weights: No
+        manual gradient weights: Yes
+
+    '''
+
+    fname = 'sgeometries_globaltargets_batomicweights.hdf5'
+    satoms = get_bulk_geometries()
+    batomicweights = get_batomicweights_byatoms(satoms)
+    targets = get_properties_byatoms(satoms, 3, False)
+
+    fnetdata = Fnetdata(atoms=satoms, targets=targets, atomic=False)
+    fnetdata.atomicweights = batomicweights
     fnetdata.dump(os.path.join(tmpdir, fname))
 
     hdf5 = Hdf5(os.path.join(tmpdir, fname))
