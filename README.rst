@@ -19,14 +19,18 @@ Installation
 Please note, that this package has been tested for Python 3.X support. Its usage
 additionally requires
 
-  - `numerical Python <https://numpy.org/doc/stable/reference/>`_ (`numpy`)
-  - `pythonic HDF5 <http://www.h5py.org/>`_ (`h5py`)
-  - `Atomic Simulation Environment <https://wiki.fysik.dtu.dk/ase/>`_ (`ase`)
+- `numerical Python <https://numpy.org/doc/stable/reference/>`_ (`numpy`)
+- `pythonic HDF5 <http://www.h5py.org/>`_ (`h5py`)
+- `Atomic Simulation Environment <https://wiki.fysik.dtu.dk/ase/>`_ (`ase`)
 
 as well as the `pytest` framework in order to run the regression tests.
 
 Via the Python Package Index
 ----------------------------
+
+First, make sure you have an up-to-date version of pip installed::
+
+  python -m pip install --upgrade pip
 
 The package can be downloaded and installed via pip into the active Python
 interpreter (preferably using a virtual python environment) by ::
