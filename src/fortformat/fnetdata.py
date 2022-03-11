@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------#
 #  fortnet-python: Python Tools for the Fortnet Software Package               #
-#  Copyright (C) 2021 T. W. van der Heide                                      #
+#  Copyright (C) 2021 - 2022 T. W. van der Heide                               #
 #                                                                              #
 #  See the LICENSE file for terms of usage and distribution.                   #
 #------------------------------------------------------------------------------#
@@ -29,7 +29,8 @@ class Fnetdata:
     '''Basic Fortnet Input Format Class.'''
 
 
-    def __init__(self, atoms=None, features=None, targets=None, atomic=False):
+    def __init__(self, atoms=None, features=None, globaltargets=None,
+                 atomictargets=None):
         '''Initializes a Fnetdata object.
 
         Args:
@@ -38,14 +39,10 @@ class Fnetdata:
                 of the training dataset to be used
             features (list): list of numpy arrays containing external atomic
                 features, used as an additional, optional input
-            targets (list or 2darray): list of numpy arrays (atomic) or 2darray,
-                containing the targets of the training dataset
-            atomic (bool): true, if targets are atomic properties (e.g. forces)
-                and false, if targets are system properties (e.g. total energy)
+            globaltargets (2darray): contains system-wide targets of dataset
+            atomictargets (list): contains atomic targets of dataset
 
         '''
-
-        self._atomic = atomic
 
         if atoms is None:
             self._withatoms = False
@@ -65,13 +62,24 @@ class Fnetdata:
             self._nfeatures, self._features = \
                 _checkfeatureconsistency(atoms=atoms, features=features)
 
-        if targets is None:
-            self._withtargets = False
-            self._ntargets = 0
+        if globaltargets is None:
+            self._withglobaltargets = False
+            self._nglobaltargets = 0
         else:
-            self._withtargets = True
-            self._targets, self._ntargets = \
-                _checktargetconsistency(targets, self._nsystems, self._atomic)
+            self._withglobaltargets = True
+            self._globaltargets, self._nglobaltargets = \
+                _checktargetconsistency(globaltargets, self._nsystems, False)
+            if self._nglobaltargets > 0:
+                self._withglobaltargets = True
+
+        if atomictargets is None:
+            self._withatomictargets = False
+            self._natomictargets = 0
+        else:
+            self._atomictargets, self._natomictargets = \
+                _checktargetconsistency(atomictargets, self._nsystems, True)
+            if self._natomictargets > 0:
+                self._withatomictargets = True
 
         self._weights = np.ones((self._nsystems,), dtype=int)
 
@@ -106,10 +114,10 @@ class Fnetdata:
 
             tmp = {}
 
-            if self._atomic and self._withtargets:
-                tmp['targets'] = self._targets[isys]
-            elif not self._atomic and self._withtargets:
-                tmp['targets'] = self._targets[isys, :]
+            if self._withatomictargets:
+                tmp['atomictargets'] = self._atomictargets[isys]
+            if self._withglobaltargets:
+                tmp['globaltargets'] = self._globaltargets[isys, :]
 
             if self._withatoms:
 
@@ -220,8 +228,8 @@ class Fnetdata:
             types[...] = zz
 
         traingrp = datagrp.create_group('training')
-        traingrp.attrs['ntargets'] = self._ntargets
-        traingrp.attrs['atomic'] = int(self._atomic)
+        traingrp.attrs['nglobaltargets'] = self._nglobaltargets
+        traingrp.attrs['natomictargets'] = self._natomictargets
 
         for isys in range(self._nsystems):
 
@@ -233,8 +241,11 @@ class Fnetdata:
             if self._withatoms:
                 hdf_append_geometry(subroot, data[isys], True)
 
-            if self._withtargets:
-                hdf_append_targets(subroot, data[isys]['targets'])
+            if self._withglobaltargets:
+                hdf_append_globaltargets(subroot, data[isys]['globaltargets'])
+
+            if self._withatomictargets:
+                hdf_append_atomictargets(subroot, data[isys]['atomictargets'])
 
             if self._withfeatures:
                 hdf_append_external_features(subroot, self._features[isys])
@@ -355,17 +366,29 @@ class Fnetdata:
 
 
     @property
-    def ntargets(self):
-        '''Defines property, providing the number of targets.
+    def nglobaltargets(self):
+        '''Defines property, providing the number of system-wide targets.
 
         Returns:
 
-            ntargets (int): if targets are atomic, the number of targets
-                per atom gets returned, otherwise number of targets per system
+            nglobaltargets (int): number of system-wide targets per system
 
         '''
 
-        return self._ntargets
+        return self._nglobaltargets
+
+
+    @property
+    def natomictargets(self):
+        '''Defines property, providing the number of atomic targets.
+
+        Returns:
+
+            natomictargets (int): number of targets per atom (per system)
+
+        '''
+
+        return self._natomictargets
 
 
     @property
@@ -593,24 +616,35 @@ def hdf_append_external_features(root, data):
     features[...] = data
 
 
-def hdf_append_targets(root, data):
+def hdf_append_globaltargets(root, data):
     '''Appends target information to a given in-memory hdf file.
 
     Args:
 
         root (hdf group): hdf group
-        data (2darray): atomic or global targets
+        data (1darray): system-wide targets
 
     '''
 
-    if data.ndim == 1:
-        tmp = np.empty((1, len(data)), dtype=float)
-        tmp[0, :] = data
-    else:
-        tmp = data
+    tmp = np.empty((1, len(data)), dtype=float)
+    tmp[0, :] = data
 
-    targets = root.create_dataset('targets', tmp.shape, dtype='float')
+    targets = root.create_dataset('globaltargets', tmp.shape, dtype='float')
     targets[...] = tmp
+
+
+def hdf_append_atomictargets(root, data):
+    '''Appends target information to a given in-memory hdf file.
+
+    Args:
+
+        root (hdf group): hdf group
+        data (2darray): atomic targets
+
+    '''
+
+    targets = root.create_dataset('atomictargets', data.shape, dtype='float')
+    targets[...] = data
 
 
 class FnetdataError(Exception):
