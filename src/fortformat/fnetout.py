@@ -40,6 +40,8 @@ class Fnetout:
                 raise FnetoutError('Invalid running mode specification.')
 
             output = fnetoutfile['fnetout']['output']
+
+            # read number of datapoints
             self._ndatapoints = output.attrs.get('ndatapoints')
             if len(self._ndatapoints) == 1:
                 # number of datapoints stored in array of size 1
@@ -48,6 +50,28 @@ class Fnetout:
                 msg = "Error while reading fnetout file '" + self._fname + \
                     "'. Unrecognized number of datapoints obtained."
                 raise FnetoutError(msg)
+
+            # read number of system-wide targets
+            self._nglobaltargets = output.attrs.get('nglobaltargets')
+            if len(self._nglobaltargets) == 1:
+                # number of system-wide targets stored in array of size 1
+                self._nglobaltargets = self._nglobaltargets[0]
+            else:
+                msg = "Error while reading fnetout file '" + self._fname + \
+                    "'. Unrecognized number of global targets obtained."
+                raise FnetoutError(msg)
+
+            # read number of atomic targets
+            self._natomictargets = output.attrs.get('natomictargets')
+            if len(self._natomictargets) == 1:
+                # number of atomic targets stored in array of size 1
+                self._natomictargets = self._natomictargets[0]
+            else:
+                msg = "Error while reading fnetout file '" + self._fname + \
+                    "'. Unrecognized number of atomic targets obtained."
+                raise FnetoutError(msg)
+
+            # read force specification
             self._tforces = output.attrs.get('tforces')
             # account for legacy files where no force entry is present
             if self._tforces is None:
@@ -59,18 +83,6 @@ class Fnetout:
                 msg = "Error while reading fnetout file '" + self._fname + \
                     "'. Unrecognized force specification obtained."
                 raise FnetoutError(msg)
-
-            self._targettype = \
-                output.attrs.get('targettype').decode('UTF-8').strip()
-            if not self._targettype in ('atomic', 'global'):
-                raise FnetoutError('Invalid running mode obtained.')
-
-            # get number of atomic or global predictions/targets
-            self._npredictions = np.shape(
-                np.array(output['datapoint1']['output']))[1]
-
-            if self._mode == 'validate':
-                self._npredictions = int(self._npredictions / 2)
 
 
     @property
@@ -100,16 +112,29 @@ class Fnetout:
 
 
     @property
-    def targettype(self):
-        '''Defines property, providing the target type.
+    def nglobaltargets(self):
+        '''Defines property, providing the number of system-wide targets.
 
         Returns:
 
-            targettype (str): type of targets the network was trained on
+            nglobaltargets (int): number of global targets per datapoint
 
         '''
 
-        return self._targettype
+        return self._nglobaltargets
+
+
+    @property
+    def natomictargets(self):
+        '''Defines property, providing the number of atomic targets.
+
+        Returns:
+
+            natomictargets (int): number of atomic targets per datapoint
+
+        '''
+
+        return self._natomictargets
 
 
     @property
@@ -126,75 +151,134 @@ class Fnetout:
 
 
     @property
-    def predictions(self):
-        '''Defines property, providing the predictions of Fortnet.
+    def globalpredictions(self):
+        '''Defines property, providing the system-wide predictions of Fortnet.
 
         Returns:
 
-            predictions (list or 2darray): predictions of the network
+            predictions (2darray): predictions of the network
 
         '''
 
+        if not self._nglobaltargets > 0:
+            return None
+
+        predictions = np.empty((self._ndatapoints, self._nglobaltargets),
+                               dtype=float)
+
         with h5py.File(self._fname, 'r') as fnetoutfile:
             output = fnetoutfile['fnetout']['output']
-            if self._targettype == 'atomic':
-                predictions = []
-                for idata in range(self._ndatapoints):
-                    dataname = 'datapoint' + str(idata + 1)
-                    if self._mode == 'validate':
-                        predictions.append(
-                            np.array(output[dataname]['output'],
-                                     dtype=float)[:, :self._npredictions])
-                    else:
-                        predictions.append(
-                            np.array(output[dataname]['output'], dtype=float))
-            else:
-                predictions = np.empty(
-                    (self._ndatapoints, self._npredictions), dtype=float)
-                for idata in range(self._ndatapoints):
-                    dataname = 'datapoint' + str(idata + 1)
-                    if self._mode == 'validate':
-                        predictions[idata, :] = \
-                            np.array(output[dataname]['output'],
-                                     dtype=float)[0, :self._npredictions]
-                    else:
-                        predictions[idata, :] = \
-                            np.array(output[dataname]['output'],
-                                     dtype=float)[0, :]
+            for idata in range(self._ndatapoints):
+                dataname = 'datapoint' + str(idata + 1)
+                predictions[idata, :] = np.array(
+                    output[dataname]['globalpredictions'],
+                    dtype=float)
 
         return predictions
 
 
     @property
-    def targets(self):
-        '''Defines property, providing the targets during training.
+    def globalpredictions_atomic(self):
+        '''Defines property, providing the (atom-resolved) system-wide
+           predictions of Fortnet.
 
         Returns:
 
-            targets (list or 2darray): targets during training
+            predictions (list): predictions of the network
 
         '''
 
-        if self._mode == 'predict':
+        if not self._nglobaltargets > 0:
             return None
+
+        predictions = []
 
         with h5py.File(self._fname, 'r') as fnetoutfile:
             output = fnetoutfile['fnetout']['output']
-            if self._targettype == 'atomic':
-                targets = []
-                for idata in range(self._ndatapoints):
-                    dataname = 'datapoint' + str(idata + 1)
-                    targets.append(
-                        np.array(output[dataname]['output'],
-                                 dtype=float)[:, self._npredictions:])
-            else:
-                targets = np.empty(
-                    (self._ndatapoints, self._npredictions), dtype=float)
-                for idata in range(self._ndatapoints):
-                    dataname = 'datapoint' + str(idata + 1)
-                    targets[idata, :] = \
-                        np.array(output[dataname]['output'],
-                                 dtype=float)[0, self._npredictions:]
+            for idata in range(self._ndatapoints):
+                dataname = 'datapoint' + str(idata + 1)
+                predictions.append(
+                    np.array(output[dataname]['rawpredictions'],
+                             dtype=float)[:, 0:self._nglobaltargets])
+
+        return predictions
+
+
+    @property
+    def atomicpredictions(self):
+        '''Defines property, providing the atomic predictions of Fortnet.
+
+        Returns:
+
+            predictions (list): predictions of the network
+
+        '''
+
+        if not self._natomictargets > 0:
+            return None
+
+        predictions = []
+
+        with h5py.File(self._fname, 'r') as fnetoutfile:
+            output = fnetoutfile['fnetout']['output']
+            for idata in range(self._ndatapoints):
+                dataname = 'datapoint' + str(idata + 1)
+                predictions.append(
+                    np.array(output[dataname]
+                             ['rawpredictions'], dtype=float)
+                    [:, self._nglobaltargets:])
+
+        return predictions
+
+
+    @property
+    def globaltargets(self):
+        '''Defines property, providing the system-wide targets during training.
+
+        Returns:
+
+            targets (2darray): system-wide targets during training
+
+        '''
+
+        if self._mode == 'predict' or self._nglobaltargets == 0:
+            return None
+
+        targets = np.empty((self._ndatapoints, self._nglobaltargets),
+                           dtype=float)
+
+        with h5py.File(self._fname, 'r') as fnetoutfile:
+            output = fnetoutfile['fnetout']['output']
+            for idata in range(self._ndatapoints):
+                dataname = 'datapoint' + str(idata + 1)
+                targets[idata, :] = np.array(
+                    output[dataname]['globaltargets'],
+                    dtype=float)
+
+        return targets
+
+
+    @property
+    def atomictargets(self):
+        '''Defines property, providing the atomic targets during training.
+
+        Returns:
+
+            targets (list): atomic targets during training
+
+        '''
+
+        if self._mode == 'predict' or self._natomictargets == 0:
+            return None
+
+        targets = []
+
+        with h5py.File(self._fname, 'r') as fnetoutfile:
+            output = fnetoutfile['fnetout']['output']
+            for idata in range(self._ndatapoints):
+                dataname = 'datapoint' + str(idata + 1)
+                targets.append(np.array(output[dataname]
+                                        ['atomictargets'], dtype=float))
 
         return targets
 
@@ -214,10 +298,10 @@ class Fnetout:
 
         tmp1 = []
 
-        if self._targettype == 'atomic':
+        if self._natomictargets > 0:
             msg = "Error while extracting forces from fnetout file '" \
                 + self._fname + \
-                "'. Forces only supplied for global property targets."
+                "'. Forces supplied for global property targets only."
             raise FnetoutError(msg)
 
         with h5py.File(self._fname, 'r') as fnetoutfile:
