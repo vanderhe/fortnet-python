@@ -626,11 +626,9 @@ def hdf_append_globaltargets(root, data):
 
     '''
 
-    tmp = np.empty((1, len(data)), dtype=float)
-    tmp[0, :] = data
+    targets = root.create_dataset('globaltargets', len(data), dtype='float')
+    targets[...] = data
 
-    targets = root.create_dataset('globaltargets', tmp.shape, dtype='float')
-    targets[...] = tmp
 
 
 def hdf_append_atomictargets(root, data):
