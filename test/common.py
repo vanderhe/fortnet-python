@@ -87,6 +87,7 @@ def compare_fnetout_references(ref, fname, atol=ATOL, rtol=RTOL):
     tforces = fnetout.tforces
     forces = fnetout.forces
     atomicpredictions = fnetout.atomicpredictions
+    globalpredictions = fnetout.globalpredictions
     globalpredictions_atomic = fnetout.globalpredictions_atomic
 
     equal = mode == ref['mode']
@@ -160,6 +161,16 @@ def compare_fnetout_references(ref, fname, atol=ATOL, rtol=RTOL):
             if not equal:
                 warnings.warn('Mismatch in atomic predictions of datapoint ' \
                               + str(ii + 1) + '.')
+                return False
+
+    if ref['globalpredictions'] is not None:
+        for ii, target in enumerate(globalpredictions):
+            equal = np.allclose(target, ref['globalpredictions'][ii],
+                                rtol=rtol, atol=atol)
+
+            if not equal:
+                warnings.warn('Mismatch in global predictions' \
+                              + ' of datapoint ' + str(ii + 1) + '.')
                 return False
 
     if ref['globalpredictions_atomic'] is not None:
