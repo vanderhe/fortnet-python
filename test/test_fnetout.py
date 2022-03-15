@@ -32,11 +32,15 @@ def test_predict_atomic():
     ref = {}
     ref['mode'] = 'predict'
     ref['ndatapoints'] = 5
-    ref['targettype'] = 'atomic'
-    ref['targets'] = None
+    ref['nglobaltargets'] = 0
+    ref['natomictargets'] = 2
     ref['tforces'] = False
     ref['forces'] = None
-    ref['predictions'] = [
+    ref['atomictargets'] = None
+    ref['globaltargets'] = None
+    ref['globalpredictions'] = None
+    ref['globalpredictions_atomic'] = None
+    ref['atomicpredictions'] = [
         np.array([[1.961575401201565427e-01, 9.168128808877051839e-01],
                   [1.325239781646761206e-01, 7.994346410064820940e-01],
                   [1.826092611054506987e-01, 8.918864627286081648e-01],
@@ -100,16 +104,38 @@ def test_predict_global():
     ref = {}
     ref['mode'] = 'predict'
     ref['ndatapoints'] = 5
-    ref['targettype'] = 'global'
-    ref['targets'] = None
+    ref['nglobaltargets'] = 1
+    ref['natomictargets'] = 0
     ref['tforces'] = False
     ref['forces'] = None
-    ref['predictions'] = [
+    ref['atomictargets'] = None
+    ref['globaltargets'] = None
+
+    ref['globalpredictions_atomic'] = [
+        np.array([-1.526436789762218496e+02], dtype=float),
+        np.array([[-4.585193773117663341e+02],
+                  [-4.585193773117663341e+02]], dtype=float) / 2.0,
+        np.array([[-2.290754290677185736e+02],
+                  [-2.290754290677185736e+02],
+                  [-2.290754290677185736e+02]], dtype=float) / 3.0,
+        np.array([[-6.877477714671086915e+02],
+                  [-6.877477714671086915e+02],
+                  [-6.877477714671086915e+02],
+                  [-6.877477714671086915e+02]], dtype=float) / 4.0,
+        np.array([[-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02]], dtype=float) / 5.0]
+
+    ref['globalpredictions'] = [
         np.array([-1.526436789762218496e+02], dtype=float),
         np.array([-4.585193773117663341e+02], dtype=float),
         np.array([-2.290754290677185736e+02], dtype=float),
         np.array([-6.877477714671086915e+02], dtype=float),
         np.array([-5.349057545062817098e+02], dtype=float)]
+
+    ref['atomicpredictions'] = None
 
     equal = compare_fnetout_references(ref, os.path.join(REFPATH, '_' + fname))
 
@@ -126,8 +152,13 @@ def test_predict_global_singleforces():
     ref = {}
     ref['mode'] = 'predict'
     ref['ndatapoints'] = 2
-    ref['targettype'] = 'global'
-    ref['targets'] = None
+    ref['nglobaltargets'] = 1
+    ref['natomictargets'] = 0
+
+    ref['atomictargets'] = None
+    ref['globaltargets'] = None
+    ref['atomicpredictions'] = None
+
     ref['tforces'] = True
     ref['forces'] = []
     ref['forces'].append([])
@@ -142,7 +173,14 @@ def test_predict_global_singleforces():
          0.000000000000000000e+00],
         [8.464270111301352983e-01, 0.000000000000000000e+00,
          0.000000000000000000e+00]], dtype=float))
-    ref['predictions'] = [
+
+    ref['globalpredictions_atomic'] = [
+        np.array([[-4.301790810131604914e-01],
+                  [-4.301790810131604914e-01]], dtype=float) / 2.0,
+        np.array([[-5.025593389423121948e-01],
+                  [-5.025593389423121948e-01]], dtype=float) / 2.0]
+
+    ref['globalpredictions'] = [
         np.array([-4.301790810131604914e-01], dtype=float),
         np.array([-5.025593389423121948e-01], dtype=float)]
 
@@ -161,8 +199,13 @@ def test_predict_global_multiforces():
     ref = {}
     ref['mode'] = 'predict'
     ref['ndatapoints'] = 2
-    ref['targettype'] = 'global'
-    ref['targets'] = None
+    ref['nglobaltargets'] = 3
+    ref['natomictargets'] = 0
+
+    ref['atomictargets'] = None
+    ref['globaltargets'] = None
+    ref['atomicpredictions'] = None
+
     ref['tforces'] = True
     ref['forces'] = []
     ref['forces'].append([])
@@ -197,7 +240,18 @@ def test_predict_global_multiforces():
          0.000000000000000000e+00],
         [8.438788427604926312e-01, 0.000000000000000000e+00,
          0.000000000000000000e+00]], dtype=float))
-    ref['predictions'] = [
+
+    ref['globalpredictions_atomic'] = [
+        np.array([[-4.304246998683396441e-01, -4.302864774322330277e-01,
+                   -4.305433861504512905e-01],
+                  [-4.304246998683396441e-01, -4.302864774322330277e-01,
+                   -4.305433861504512905e-01]], dtype=float) / 2.0,
+        np.array([[-5.022394949529731534e-01, -5.022869347972704901e-01,
+                   -5.021969559503443037e-01],
+                  [-5.022394949529731534e-01, -5.022869347972704901e-01,
+                   -5.021969559503443037e-01]], dtype=float) / 2.0]
+
+    ref['globalpredictions'] = [
         np.array([-4.304246998683396441e-01, -4.302864774322330277e-01,
                   -4.305433861504512905e-01], dtype=float),
         np.array([-5.022394949529731534e-01, -5.022869347972704901e-01,
@@ -218,10 +272,17 @@ def test_validate_atomic():
     ref = {}
     ref['mode'] = 'validate'
     ref['ndatapoints'] = 5
-    ref['targettype'] = 'atomic'
+    ref['nglobaltargets'] = 0
+    ref['natomictargets'] = 2
+
+    ref['globaltargets'] = None
+    ref['globalpredictions'] = None
+    ref['globalpredictions_atomic'] = None
+
     ref['tforces'] = False
     ref['forces'] = None
-    ref['targets'] = [
+
+    ref['atomictargets'] = [
         np.array([
             [1.540549993515014648e-01, 8.459450006484985352e-01],
             [1.883080005645751953e-01, 8.116919994354248047e-01],
@@ -274,7 +335,7 @@ def test_validate_atomic():
             [-3.264440000057220459e-01, 6.326444000005722046e+00],
             [-3.363139927387237549e-01, 6.336313992738723755e+00]],
                  dtype=float)]
-    ref['predictions'] = [
+    ref['atomicpredictions'] = [
         np.array([
             [1.961575401201565427e-01, 9.168128808877051839e-01],
             [1.325239781646761206e-01, 7.994346410064820940e-01],
@@ -343,22 +404,45 @@ def test_validate_global():
     ref = {}
     ref['mode'] = 'validate'
     ref['ndatapoints'] = 5
-    ref['targettype'] = 'global'
+    ref['nglobaltargets'] = 1
+    ref['natomictargets'] = 0
+
+    ref['atomictargets'] = None
+    ref['atomicpredictions'] = None
     ref['targets'] = True
     ref['tforces'] = False
     ref['forces'] = None
-    ref['targets'] = [
+
+    ref['globaltargets'] = [
         np.array([-1.527736989418316114e+02], dtype=float),
         np.array([-4.584216715420000128e+02], dtype=float),
         np.array([-2.291870019319999869e+02], dtype=float),
         np.array([-6.876760346160000381e+02], dtype=float),
         np.array([-5.348338707069999600e+02], dtype=float)]
-    ref['predictions'] = [
+
+    ref['globalpredictions'] = [
         np.array([-1.526436789762218496e+02], dtype=float),
         np.array([-4.585193773117663341e+02], dtype=float),
         np.array([-2.290754290677185736e+02], dtype=float),
         np.array([-6.877477714671086915e+02], dtype=float),
         np.array([-5.349057545062817098e+02], dtype=float)]
+
+    ref['globalpredictions_atomic'] = [
+        np.array([[-1.526436789762218496e+02]], dtype=float),
+        np.array([[-4.585193773117663341e+02],
+                  [-4.585193773117663341e+02]], dtype=float) / 2.0,
+        np.array([[-2.290754290677185736e+02],
+                  [-2.290754290677185736e+02],
+                  [-2.290754290677185736e+02]], dtype=float) / 3.0,
+        np.array([[-6.877477714671086915e+02],
+                  [-6.877477714671086915e+02],
+                  [-6.877477714671086915e+02],
+                  [-6.877477714671086915e+02]], dtype=float) / 4.0,
+        np.array([[-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02],
+                  [-5.349057545062817098e+02]], dtype=float) / 5.0]
 
     equal = compare_fnetout_references(ref, os.path.join(REFPATH, '_' + fname))
 

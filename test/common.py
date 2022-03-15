@@ -80,11 +80,14 @@ def compare_fnetout_references(ref, fname, atol=ATOL, rtol=RTOL):
 
     mode = fnetout.mode
     ndatapoints = fnetout.ndatapoints
-    targettype = fnetout.targettype
-    targets = fnetout.targets
+    nglobaltargets = fnetout.nglobaltargets
+    natomictargets = fnetout.natomictargets
+    globaltargets = fnetout.globaltargets
+    atomictargets = fnetout.atomictargets
     tforces = fnetout.tforces
     forces = fnetout.forces
-    predictions = fnetout.predictions
+    atomicpredictions = fnetout.atomicpredictions
+    globalpredictions_atomic = fnetout.globalpredictions_atomic
 
     equal = mode == ref['mode']
 
@@ -98,19 +101,35 @@ def compare_fnetout_references(ref, fname, atol=ATOL, rtol=RTOL):
         warnings.warn('Mismatch in number of training datapoints.')
         return False
 
-    equal = targettype == ref['targettype']
+    equal = nglobaltargets == ref['nglobaltargets']
 
     if not equal:
-        warnings.warn('Mismatch in target type specification.')
+        warnings.warn('Mismatch in number of system-wide targets.')
         return False
 
-    if ref['targets'] is not None:
-        for ii, target in enumerate(targets):
-            equal = np.allclose(target, ref['targets'][ii],
+    equal = natomictargets == ref['natomictargets']
+
+    if not equal:
+        warnings.warn('Mismatch in number of atomic targets.')
+        return False
+
+    if ref['globaltargets'] is not None:
+        for ii, target in enumerate(globaltargets):
+            equal = np.allclose(target, ref['globaltargets'][ii],
                                 rtol=rtol, atol=atol)
 
             if not equal:
-                warnings.warn('Mismatch in targets of datapoint ' \
+                warnings.warn('Mismatch in global targets of datapoint ' \
+                              + str(ii + 1) + '.')
+                return False
+
+    if ref['atomictargets'] is not None:
+        for ii, target in enumerate(atomictargets):
+            equal = np.allclose(target, ref['atomictargets'][ii],
+                                rtol=rtol, atol=atol)
+
+            if not equal:
+                warnings.warn('Mismatch in atomic targets of datapoint ' \
                               + str(ii + 1) + '.')
                 return False
 
@@ -133,16 +152,28 @@ def compare_fnetout_references(ref, fname, atol=ATOL, rtol=RTOL):
                                   str(itarget + 1) + '.')
                     return False
 
-    for ii, prediction in enumerate(predictions):
-        equal = np.allclose(prediction, ref['predictions'][ii],
-                            rtol=rtol, atol=atol)
+    if ref['atomicpredictions'] is not None:
+        for ii, prediction in enumerate(atomicpredictions):
+            equal = np.allclose(prediction, ref['atomicpredictions'][ii],
+                                rtol=rtol, atol=atol)
 
-        if not equal:
-            warnings.warn('Mismatch in predictions of datapoint ' \
-                          + str(ii + 1) + '.')
-            return False
+            if not equal:
+                warnings.warn('Mismatch in atomic predictions of datapoint ' \
+                              + str(ii + 1) + '.')
+                return False
+
+    if ref['globalpredictions_atomic'] is not None:
+        for ii, target in enumerate(globalpredictions_atomic):
+            equal = np.allclose(target, ref['globalpredictions_atomic'][ii],
+                                rtol=rtol, atol=atol)
+
+            if not equal:
+                warnings.warn('Mismatch in (atom-resolved) global predictions' \
+                              + ' of datapoint ' + str(ii + 1) + '.')
+                return False
 
     return True
+
 
 def get_mixed_geometries():
     '''Generates six geometries with(out) periodic boundary conditions.'''
