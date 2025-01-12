@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------#
 #  fortnet-python: Python Tools for the Fortnet Software Package               #
-#  Copyright (C) 2021 - 2022 T. W. van der Heide                               #
+#  Copyright (C) 2021 - 2025 T. W. van der Heide                               #
 #                                                                              #
 #  See the LICENSE file for terms of usage and distribution.                   #
 #------------------------------------------------------------------------------#

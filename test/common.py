@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------#
 #  fortnet-python: Python Tools for the Fortnet Software Package               #
-#  Copyright (C) 2021 - 2022 T. W. van der Heide                               #
+#  Copyright (C) 2021 - 2025 T. W. van der Heide                               #
 #                                                                              #
 #  See the LICENSE file for terms of usage and distribution.                   #
 #------------------------------------------------------------------------------#
@@ -445,7 +445,8 @@ def get_atomicweights_byatoms(atoms):
     weights = []
     for atom in atoms:
         natom = len(atom)
-        weights.append(np.asfarray(np.random.randint(1, 100, natom, dtype=int)))
+        weights.append(np.asarray(
+            np.random.randint(1, 100, natom, dtype=int), dtype=float))
 
     return weights
 
