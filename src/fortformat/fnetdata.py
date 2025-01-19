@@ -192,7 +192,7 @@ class Fnetdata:
                     pos = np.where(
                         unique_global_zz == data[isys]['atomicnumbers'][iatom])
                     # Fortran indexing starts at 1
-                    data[isys]['localattoglobalsp'][iatom] = pos[0] + 1
+                    data[isys]['localattoglobalsp'][iatom] = pos[0].item() + 1
 
         return data, unique_global_zz
 
