@@ -52,9 +52,11 @@ of the project::
 Testing
 =======
 
-The regression testsuite utilizes the `pytest` framework and may be executed by
+The regression testsuite utilizes the `pytest` framework and may be installed
+and executed by
 ::
 
+  pip install .[test]
   python -m pytest --basetemp=Testing
 
 Documentation
